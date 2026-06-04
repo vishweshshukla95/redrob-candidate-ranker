@@ -1,0 +1,7 @@
+candidates.jsonl
+submission_enriched.csv
+sample_500.jsonl
+venv/
+__pycache__/
+*.pyc
+.DS_Store
