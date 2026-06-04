@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Redrob — Intelligent Candidate Ranking</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f8f7f4;
+      --surface: #ffffff;
+      --border: #e4e2da;
+      --text-primary: #1a1a18;
+      --text-secondary: #6b6a65;
+      --text-muted: #9e9d98;
+      --purple: #534AB7;
+      --purple-light: #EEEDFE;
+      --purple-dark: #3C3489;
+      --teal: #0F6E56;
+      --teal-light: #E1F5EE;
+      --amber: #854F0B;
+      --amber-light: #FAEEDA;
+      --coral: #993C1D;
+      --coral-light: #FAECE7;
+      --green: #3B6D11;
+      --green-light: #EAF3DE;
+      --radius: 10px;
+      --radius-sm: 6px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0 2rem;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 17px;
+      font-weight: 600;
+      color: var(--text-primary);
+      text-decoration: none;
+    }
+
+    .logo-icon {
+      width: 30px;
+      height: 30px;
+      background: var(--purple);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .header-badge {
+      font-size: 12px;
+      background: var(--purple-light);
+      color: var(--purple-dark);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 2.5rem 2rem 2rem;
+    }
+
+    .hero-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    .hero h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 6px;
+    }
+
+    .hero p {
+      font-size: 14px;
+      color: var(--text-secondary);
+      margin-bottom: 1.5rem;
+      max-width: 580px;
+      line-height: 1.6;
+    }
+
+    /* ── STATS ROW ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+    }
+
+    .stat-label {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    /* ── SEARCH & FILTERS ── */
+    .controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-wrap {
+      position: relative;
+      flex: 1;
+      min-width: 220px;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      font-size: 15px;
+      pointer-events: none;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      padding: 10px 14px 10px 38px;
+      border: 1.5px solid var(--border);
+      border-radius: 24px;
+      font-size: 14px;
+      background: var(--surface);
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--purple);
+      box-shadow: 0 0 0 3px rgba(83,74,183,0.12);
+    }
+
+    .search-wrap input::placeholder {
+      color: var(--text-muted);
+    }
+    
+
+    .search-wrap input:focus {
+      border-color: var(--purple);
+    }
+
+    select {
+      padding: 10px 14px;
+      border: 1.5px solid var(--border);
+      border-radius: 24px;
+      font-size: 13px;
+      background: var(--surface);
+      color: var(--text-primary);
+      outline: none;
+      cursor: pointer;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      transition: border-color 0.2s;
+    }
+
+    select:focus {
+      border-color: var(--purple);
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .main {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 1.5rem 2rem;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+
+    .results-count {
+      font-size: 13px;
+      color: var(--text-secondary);
+    }
+
+    /* ── CANDIDATE CARDS ── */
+    .candidates-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .candidate-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      display: grid;
+      grid-template-columns: 44px 1fr auto;
+      gap: 14px;
+      align-items: start;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+
+    .candidate-card:hover {
+      border-color: #c5c3e8;
+      transform: translateY(-1px);
+    }
+
+    .candidate-card.expanded {
+      border-color: var(--purple);
+    }
+
+    /* Rank badge */
+    .rank-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .rank-1  { background: #FFF3CD; color: #856404; }
+    .rank-2  { background: #E8E8E8; color: #555; }
+    .rank-3  { background: #FDEBD0; color: #784212; }
+    .rank-top10 { background: var(--purple-light); color: var(--purple-dark); }
+    .rank-top25 { background: var(--teal-light); color: var(--teal); }
+    .rank-rest  { background: var(--bg); color: var(--text-secondary); border: 1px solid var(--border); }
+
+    /* Card body */
+    .card-body { min-width: 0; }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 4px;
+    }
+
+    .candidate-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .open-badge {
+      font-size: 11px;
+      background: var(--green-light);
+      color: var(--green);
+      padding: 2px 8px;
+      border-radius: 20px;
+      font-weight: 500;
+    }
+
+    .card-title {
+      font-size: 13px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+    }
+
+    .card-meta {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    .meta-item svg {
+      width: 13px;
+      height: 13px;
+      flex-shrink: 0;
+    }
+
+    /* Skills tags */
+    .skills-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+
+    .skill-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--purple-light);
+      color: var(--purple-dark);
+      font-weight: 500;
+    }
+
+    /* Score section */
+    .score-section {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+
+    .score-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 700;
+      border: 2px solid transparent;
+    }
+
+    .score-high   { background: var(--teal-light);   color: var(--teal);   border-color: #9FE1CB; }
+    .score-mid    { background: var(--purple-light);  color: var(--purple); border-color: #AFA9EC; }
+    .score-low    { background: var(--amber-light);   color: var(--amber);  border-color: #FAC775; }
+
+    .notice-chip {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: var(--amber-light);
+      color: var(--amber);
+      white-space: nowrap;
+    }
+
+    /* Expanded reasoning */
+    .reasoning-box {
+      display: none;
+      grid-column: 1 / -1;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-top: 4px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+      border-left: 3px solid var(--purple);
+    }
+
+    .candidate-card.expanded .reasoning-box {
+      display: block;
+    }
+
+    /* Score bars */
+    .score-bars {
+      display: none;
+      grid-column: 1 / -1;
+      margin-top: 8px;
+    }
+
+    .candidate-card.expanded .score-bars {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .bar-row {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .bar-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+
+    .bar-track {
+      height: 5px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      border-radius: 3px;
+      background: var(--purple);
+      transition: width 0.4s ease;
+    }
+
+    /* No results */
+    .no-results {
+      text-align: center;
+      padding: 3rem;
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* Footer */
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 12px;
+      color: var(--text-muted);
+      border-top: 1px solid var(--border);
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 600px) {
+      .candidate-card { grid-template-columns: 36px 1fr auto; gap: 10px; padding: 0.9rem 1rem; }
+      .main { padding: 1rem; }
+      .hero { padding: 1.5rem 1rem 1rem; }
+      header { padding: 0 1rem; }
+      .score-bars { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <a class="logo" href="#">
+    <div class="logo-icon">R</div>
+    Redrob AI
+  </a>
+  <span class="header-badge">Intelligent Candidate Ranking</span>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <h1>Senior AI Engineer — Founding Team</h1>
+    <p>AI-powered ranking of 100,000 candidates. Scored across skills match, career quality, behavioral signals, location fit, and education — weighted to surface engineers who have actually shipped retrieval and ranking systems.</p>
+
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="stat-label">Candidates ranked</div>
+        <div class="stat-value" id="statTotal">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg match score</div>
+        <div class="stat-value" id="statAvg">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Open to work</div>
+        <div class="stat-value" id="statOpen">—</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Top score</div>
+        <div class="stat-value" id="statTop">—</div>
+      </div>
+    </div>
+
+    <div class="controls">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="text" id="searchInput" placeholder="Search by title, location, reasoning…" oninput="filterCards()" />
+      </div>
+      <select id="filterOpen" onchange="filterCards()">
+        <option value="all">All candidates</option>
+        <option value="open">Open to work only</option>
+      </select>
+      <select id="filterScore" onchange="filterCards()">
+        <option value="all">All scores</option>
+        <option value="high">Score ≥ 0.70</option>
+        <option value="mid">Score 0.50–0.70</option>
+        <option value="low">Score &lt; 0.50</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="results-header">
+    <span class="results-count" id="resultsCount">Loading…</span>
+  </div>
+  <div class="candidates-grid" id="candidatesGrid">
+    <div class="no-results">Loading candidates…</div>
+  </div>
+</div>
+
+<footer>
+  Built for the iIndia Runs — Redrob Hackathon &nbsp;·&nbsp; Intelligent Candidate Discovery &amp; Ranking Challenge
+</footer>
+
+<script>
+  // ── DATA will be injected here ──
+  // The Python script below generates this from submission.csv + candidates.jsonl
+  // For now we use embedded placeholder that gets replaced by build.py
+  let CANDIDATES = [];
+
+  // ── Parse CSV from embedded data ──
+  function parseCSV(text) {
+    const lines = text.trim().split('\n');
+    const headers = lines[0].split(',').map(h => h.replace(/^"|"$/g,'').trim());
+    return lines.slice(1).map(line => {
+      const vals = [];
+      let cur = '', inQ = false;
+      for (let c of line) {
+        if (c === '"') inQ = !inQ;
+        else if (c === ',' && !inQ) { vals.push(cur); cur = ''; }
+        else cur += c;
+      }
+      vals.push(cur);
+      const obj = {};
+      headers.forEach((h, i) => obj[h] = (vals[i] || '').trim());
+      return obj;
+    });
+  }
+
+  // ── Rank badge class ──
+  function rankClass(r) {
+    r = parseInt(r);
+    if (r === 1) return 'rank-1';
+    if (r === 2) return 'rank-2';
+    if (r === 3) return 'rank-3';
+    if (r <= 10) return 'rank-top10';
+    if (r <= 25) return 'rank-top25';
+    return 'rank-rest';
+  }
+
+  // ── Score badge class ──
+  function scoreClass(s) {
+    s = parseFloat(s);
+    if (s >= 0.65) return 'score-high';
+    if (s >= 0.45) return 'score-mid';
+    return 'score-low';
+  }
+
+  // ── Extract initials ──
+  function initials(name) {
+    return name.split(' ').filter(Boolean).slice(0,2).map(w => w[0].toUpperCase()).join('');
+  }
+
+  // ── Skill tag color ──
+  function skillColor(i) {
+    const colors = [
+      'background:#EEEDFE;color:#3C3489',
+      'background:#E1F5EE;color:#085041',
+      'background:#FAEEDA;color:#633806',
+    ];
+    return colors[i % colors.length];
+  }
+
+  // ── Build a single card ──
+  function buildCard(c, idx) {
+    const score = parseFloat(c.score || 0);
+    const rank  = parseInt(c.rank || idx+1);
+    const name  = c.name || c.candidate_id || 'Candidate';
+    const title = c.title || c.current_title || '—';
+    const loc   = c.location || '—';
+    const yoe   = c.years_of_experience ? parseFloat(c.years_of_experience).toFixed(0) + ' yrs exp' : '';
+    const open  = c.open_to_work === 'true' || c.open_to_work === true;
+    const notice= c.notice_period_days ? parseInt(c.notice_period_days) + 'd notice' : '';
+    const skills= c.top_skills ? c.top_skills.split('|').filter(Boolean) : [];
+    const reasoning = c.reasoning || '';
+
+    const scoreComponents = {
+      'Skills':   parseFloat(c.skills_score   || 0),
+      'Career':   parseFloat(c.career_score   || 0),
+      'Signals':  parseFloat(c.signals_score  || 0),
+      'Location': parseFloat(c.location_score || 0),
+    };
+
+    const barsHTML = Object.entries(scoreComponents).map(([label, val]) => `
+      <div class="bar-row">
+        <div class="bar-label"><span>${label}</span><span>${(val*100).toFixed(0)}%</span></div>
+        <div class="bar-track"><div class="bar-fill" style="width:${(val*100).toFixed(0)}%"></div></div>
+      </div>`).join('');
+
+    const skillTags = skills.slice(0,4).map((s,i) =>
+      `<span class="skill-tag" style="${skillColor(i)}">${s}</span>`).join('');
+
+    return `
+    <div class="candidate-card" onclick="toggleCard(this)" data-rank="${rank}" data-score="${score}"
+         data-open="${open}" data-text="${(name+' '+title+' '+loc+' '+reasoning).toLowerCase()}">
+      <div class="rank-badge ${rankClass(rank)}">${rank}</div>
+      <div class="card-body">
+        <div class="card-top">
+          <span class="candidate-name">${name}</span>
+          ${open ? '<span class="open-badge">Open to work</span>' : ''}
+        </div>
+        <div class="card-title">${title}</div>
+        <div class="card-meta">
+          ${loc ? `<span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>${loc}</span>` : ''}
+          ${yoe ? `<span class="meta-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>${yoe}</span>` : ''}
+        </div>
+        ${skillTags ? `<div class="skills-row">${skillTags}</div>` : ''}
+        ${reasoning ? `<div class="reasoning-box">${reasoning}</div>` : ''}
+        ${barsHTML  ? `<div class="score-bars">${barsHTML}</div>` : ''}
+      </div>
+      <div class="score-section">
+        <div class="score-circle ${scoreClass(score)}">${(score*100).toFixed(0)}%</div>
+        ${notice ? `<span class="notice-chip">${notice}</span>` : ''}
+      </div>
+    </div>`;
+  }
+
+  function toggleCard(el) {
+    el.classList.toggle('expanded');
+  }
+
+  // ── Filter ──
+  function filterCards() {
+    const q     = document.getElementById('searchInput').value.toLowerCase();
+    const fOpen = document.getElementById('filterOpen').value;
+    const fScore= document.getElementById('filterScore').value;
+    const cards = document.querySelectorAll('.candidate-card');
+    let visible = 0;
+
+    cards.forEach(c => {
+      const text  = c.dataset.text || '';
+      const open  = c.dataset.open === 'true';
+      const score = parseFloat(c.dataset.score || 0);
+
+      const matchQ = !q || text.includes(q);
+      const matchO = fOpen  === 'all' || (fOpen  === 'open' && open);
+      const matchS = fScore === 'all' ||
+                     (fScore === 'high' && score >= 0.70) ||
+                     (fScore === 'mid'  && score >= 0.50 && score < 0.70) ||
+                     (fScore === 'low'  && score < 0.50);
+
+      const show = matchQ && matchO && matchS;
+      c.style.display = show ? '' : 'none';
+      if (show) visible++;
+    });
+
+    document.getElementById('resultsCount').textContent =
+      `Showing ${visible} of ${cards.length} candidates`;
+  }
+
+  // ── Load CSV ──
+  async function loadData() {
+    try {
+      const res = await fetch('submission_enriched.csv');
+      if (!res.ok) throw new Error('Not found');
+      const text = await res.text();
+      CANDIDATES = parseCSV(text);
+    } catch(e) {
+      // Fallback: try plain submission.csv
+      try {
+        const res2 = await fetch('submission.csv');
+        const text2 = await res2.text();
+        CANDIDATES = parseCSV(text2);
+      } catch(e2) {
+        document.getElementById('candidatesGrid').innerHTML =
+          '<div class="no-results">Could not load submission.csv — make sure it is in the same folder as index.html.</div>';
+        return;
+      }
+    }
+    renderAll();
+  }
+
+  function renderAll() {
+    const grid = document.getElementById('candidatesGrid');
+    if (!CANDIDATES.length) {
+      grid.innerHTML = '<div class="no-results">No candidates found.</div>';
+      return;
+    }
+
+    grid.innerHTML = CANDIDATES.map((c, i) => buildCard(c, i)).join('');
+
+    // Stats
+    const scores = CANDIDATES.map(c => parseFloat(c.score || 0));
+    const avg    = scores.reduce((a,b) => a+b, 0) / scores.length;
+    const openN  = CANDIDATES.filter(c => c.open_to_work === 'true').length;
+    const topS   = Math.max(...scores);
+
+    document.getElementById('statTotal').textContent = CANDIDATES.length;
+    document.getElementById('statAvg').textContent   = (avg*100).toFixed(0) + '%';
+    document.getElementById('statOpen').textContent  = openN;
+    document.getElementById('statTop').textContent   = (topS*100).toFixed(0) + '%';
+    document.getElementById('resultsCount').textContent = `Showing ${CANDIDATES.length} candidates`;
+  }
+
+  loadData();
+</script>
+</body>
+</html>
