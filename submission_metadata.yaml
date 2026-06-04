@@ -1,0 +1,82 @@
+# Redrob Hackathon — Submission Metadata
+# Copy this file to your repo root as `submission_metadata.yaml`
+
+# ============================================================================
+# Team identity
+# ============================================================================
+team_name: "NMIMS-VishweshShukla"
+
+primary_contact:
+  name: "Vishwesh Shukla"
+  email: "vishweshshukla95@gmail.com"
+  phone: "+91-9599333064"
+
+team_members:
+  - name: "Vishwesh Shukla"
+    email: "vishweshshukla95@gmail.com"
+    role: "Team Lead / ML Engineer"
+
+# ============================================================================
+# Code and reproducibility
+# ============================================================================
+github_repo: "https://github.com/vishweshshukla95/redrob-candidate-ranker"
+
+sandbox_link: "https://vishweshshukla95.github.io/redrob-candidate-ranker"
+# Will be updated with live deployment link
+
+reproduce_command: "python rank.py --candidates ./candidates.jsonl --out ./submission.csv"
+
+# ============================================================================
+# Compute environment
+# ============================================================================
+compute:
+  platform: "MacBook Air M3"
+  cpu_cores: 8
+  ram_gb: 16
+  python_version: "3.12.7"
+  os: "macOS"
+  uses_gpu_for_inference: false
+  has_network_during_ranking: false
+  pre_computation_required: false
+  pre_computation_time_minutes: 0
+
+# ============================================================================
+# AI tools declaration
+# ============================================================================
+ai_tools_used:
+  - "Claude"
+
+ai_usage_summary: |
+  Used Claude for architectural discussion, code review, and debugging.
+  All scoring logic, weights, and ranking decisions were designed and
+  validated by the participant. No candidate data was fed to any LLM
+  during the ranking step. The ranking runs entirely offline on CPU.
+
+# ============================================================================
+# Approach summary
+# ============================================================================
+methodology_summary: |
+  Rule-based multi-signal ranker with five scoring components combined
+  with weighted aggregation. Components: (1) Skills match — required JD
+  skills like embeddings, vector DBs, retrieval, Python weighted by
+  proficiency and duration, with honeypot detection for expert skills
+  with zero duration/endorsements; (2) Career quality — reads actual
+  job description text for evidence of shipping ranking/retrieval
+  systems at product companies, penalizes pure consulting backgrounds
+  and non-technical titles; (3) Behavioral signals — weights recency
+  of activity, open-to-work flag, recruiter response rate, notice
+  period, and GitHub activity score; (4) Location fit — Pune/Noida/
+  Delhi NCR/Hyderabad preferred, with relocation bonus; (5) Education
+  tier. Final score = 0.30 x skills + 0.30 x career + 0.15 x signals
+  + 0.15 x location + 0.10 x education. Runtime ~3 minutes for 100K
+  candidates on CPU with no network calls.
+
+# ============================================================================
+# Declarations
+# ============================================================================
+declarations:
+  read_submission_spec: true
+  code_is_original_work: true
+  no_collusion: true
+  honeypot_check_done: true
+  reproduction_tested: true
